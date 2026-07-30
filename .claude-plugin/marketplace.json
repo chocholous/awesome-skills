@@ -229,6 +229,25 @@
       ],
       "category": "data-extraction",
       "version": "1.0.0"
+    },
+    {
+      "name": "apify-serp-snapshot",
+      "source": "./skills/apify-serp-snapshot",
+      "skills": "./",
+      "description": "Quick snapshot of Google organic search results for one or more queries — position, title, URL, and description per result — for SEO monitoring and rank checks, with cost guardrails (1 SERP page per query, up to 10 queries batched per run)",
+      "keywords": [
+        "serp",
+        "google-search",
+        "seo",
+        "rank-tracking",
+        "monitoring",
+        "organic-results",
+        "keywords",
+        "google-search-scraper",
+        "snapshot"
+      ],
+      "category": "data-extraction",
+      "version": "1.0.0"
     }
   ]
 }
