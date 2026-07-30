@@ -91,6 +91,9 @@ jobs:
       - name: Lint telemetry user-agent
         run: bash scripts/lint_telemetry.sh
 
+      - name: Lint security (no hardcoded tokens)
+        run: bash scripts/lint_security.sh
+
       - name: Validate skills and marketplace sync
         run: uv run scripts/generate_agents.py
 
