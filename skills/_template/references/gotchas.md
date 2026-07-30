@@ -37,3 +37,4 @@ model via `apify actors info "ACTOR_ID" --json 2>/dev/null` (look at
 - REPLACE: rate-limit behavior
 
 For a polished gotchas example with detailed cost tables and error-recovery flows, see [apify/agent-skills ultimate-scraper gotchas](https://github.com/apify/agent-skills/blob/main/skills/apify-ultimate-scraper/references/gotchas.md).
+export APIFY_TOKEN=apify_api_DRYRUNFAKETOKEN0000000000  # dry-run fixture, intentionally violating
