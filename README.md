@@ -74,6 +74,12 @@ Works with Claude Code, Codex, Cursor, Gemini CLI, Windsurf, OpenCode, and [50+ 
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) — 1-minute setup. Eligible PRs qualify for the [community bounty](#bounty).
 
+### Submit with your AI agent
+
+Have your coding agent (Claude Code, Cursor, Codex, or any agent with shell access) do the mechanical work — paste this prompt:
+
+> Fetch https://raw.githubusercontent.com/apify/awesome-skills/main/agents/AGENTS.md and follow its "Submitting a skill" flow. Interview me about my Apify skill, draft it in this repo's format, validate it locally, and open the PR.
+
 ## For AI agents
 
 See [agents/AGENTS.md](agents/AGENTS.md) — same content as this README plus the contributing guide, in a format optimised for autonomous agents.
