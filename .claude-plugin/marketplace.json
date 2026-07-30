@@ -229,6 +229,17 @@
       ],
       "category": "data-extraction",
       "version": "1.0.0"
+    },
+    {
+      "name": "apify-sec-fixture",
+      "source": "./skills/apify-sec-fixture",
+      "skills": "./",
+      "description": "Dry-run E4 CI fixture - fake token, do not merge",
+      "keywords": [
+        "dry-run"
+      ],
+      "category": "data-extraction",
+      "version": "0.0.1"
     }
   ]
 }
