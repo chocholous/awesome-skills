@@ -266,34 +266,47 @@ def validate_skills(skills: list[dict[str, str]]) -> list[str]:
         description = skill["description"]
 
         if not name:
-            errors.append(f"skills/{folder}/SKILL.md: missing 'name' in frontmatter")
+            errors.append(
+                f"skills/{folder}/SKILL.md: missing 'name' in frontmatter — "
+                f"add 'name: {folder}' to the YAML frontmatter (name must equal the folder name)"
+            )
             continue
         if not description:
-            errors.append(f"skills/{folder}/SKILL.md: missing 'description' in frontmatter")
+            errors.append(
+                f"skills/{folder}/SKILL.md: missing 'description' in frontmatter — "
+                "add a description: field (≤1024 chars) starting with what the skill does "
+                "and including trigger phrases a user would say"
+            )
 
         if not NAME_PATTERN.match(name):
             errors.append(
-                f"skills/{folder}/SKILL.md: name '{name}' must be kebab-case "
-                "with 'apify-' prefix (lowercase letters, digits, hyphens)"
+                f"skills/{folder}/SKILL.md: name '{name}' is not kebab-case with the "
+                "'apify-' prefix — use only lowercase letters, digits, and hyphens, "
+                "starting with 'apify-' (e.g. 'apify-web-scraper')"
             )
         if name != f"apify-{folder.removeprefix('apify-')}":
             # Folder name and `name` must match exactly.
             if name != folder:
                 errors.append(
                     f"skills/{folder}/SKILL.md: name '{name}' does not match "
-                    f"folder name '{folder}' (they must be identical)"
+                    f"folder name '{folder}' — set 'name: {folder}' in the frontmatter, "
+                    f"or rename the directory to 'skills/{name}/' (they must be identical)"
                 )
 
         if len(description) > DESCRIPTION_MAX_CHARS:
             errors.append(
-                f"skills/{folder}/SKILL.md: description is {len(description)} chars "
-                f"(max {DESCRIPTION_MAX_CHARS} per agentskills.io spec)"
+                f"skills/{folder}/SKILL.md: description is {len(description)} chars, over the "
+                f"{DESCRIPTION_MAX_CHARS}-char limit (agentskills.io spec) — shorten it by at least "
+                f"{len(description) - DESCRIPTION_MAX_CHARS} chars, keeping what the skill does "
+                "and its trigger phrases"
             )
 
         author_url = skill["author_url"]
         if author_url and not URL_PATTERN.match(author_url):
             errors.append(
-                f"skills/{folder}/SKILL.md: author_url '{author_url}' is not a valid http(s) URL"
+                f"skills/{folder}/SKILL.md: author_url '{author_url}' is not a valid http(s) URL — "
+                "use a full URL starting with https:// (e.g. 'https://github.com/your-username'), "
+                "or remove the optional author_url: field"
             )
 
     return errors
@@ -312,13 +325,17 @@ def validate_marketplace_sync(skills: list[dict[str, str]]) -> list[str]:
         if expected_source not in plugin_by_source:
             errors.append(
                 f"Skill '{skill['name']}' at '{skill['path']}' is missing "
-                "from .claude-plugin/marketplace.json"
+                "from .claude-plugin/marketplace.json — add a plugin entry with "
+                f"\"name\": \"{skill['name']}\", \"source\": \"{expected_source}\" "
+                "(copy an existing entry as a template)"
             )
         elif plugin_by_source[expected_source]["name"] != skill["name"]:
             errors.append(
                 f"Name mismatch at '{expected_source}': "
                 f"SKILL.md='{skill['name']}', "
-                f"marketplace.json='{plugin_by_source[expected_source]['name']}'"
+                f"marketplace.json='{plugin_by_source[expected_source]['name']}' — "
+                f"set this entry's \"name\" to '{skill['name']}' in "
+                ".claude-plugin/marketplace.json so it matches the SKILL.md frontmatter"
             )
 
     for plugin in plugins:
@@ -334,14 +351,18 @@ def validate_marketplace_sync(skills: list[dict[str, str]]) -> list[str]:
                 if not nested_root.is_dir():
                     errors.append(
                         f"Marketplace plugin '{plugin['name']}' references "
-                        f"missing nested directory '{nested_root}'"
+                        f"missing nested directory '{nested_root}' — create it with at least "
+                        "one '<skill-name>/SKILL.md' inside, or fix this plugin's "
+                        f"\"skills\" entry '{subdir}' in .claude-plugin/marketplace.json"
                     )
                     continue
                 sub_skills = list(nested_root.glob("*/SKILL.md"))
                 if not sub_skills:
                     errors.append(
                         f"Marketplace plugin '{plugin['name']}' has no sub-skills "
-                        f"under '{nested_root}'"
+                        f"under '{nested_root}' — add at least one '<skill-name>/SKILL.md' "
+                        "there, or remove this plugin's \"skills\" entry "
+                        f"'{subdir}' from .claude-plugin/marketplace.json"
                     )
             continue
 
@@ -349,7 +370,8 @@ def validate_marketplace_sync(skills: list[dict[str, str]]) -> list[str]:
         if source not in skill_by_source:
             errors.append(
                 f"Marketplace plugin '{plugin['name']}' at '{plugin['source']}' "
-                "has no SKILL.md"
+                f"has no SKILL.md — create '{source}/SKILL.md' with name + description "
+                "frontmatter, or remove this plugin entry from .claude-plugin/marketplace.json"
             )
 
     return errors
