@@ -20,6 +20,14 @@ Add your Apify skill to this list in under a minute.
 - **No unnecessary changes.** Edit only files inside your skill dir and `.claude-plugin/marketplace.json`. Don't touch `agents/AGENTS.md` or the skills table in `README.md` — both are regenerated automatically.
 - **Use Apify Actors only** — publicly available on the [Apify Store](https://apify.com/store).
 
+## Security review
+
+Before merging, a maintainer checks every skill against the hard rejects in
+[SECURITY.md](SECURITY.md): no data sent to endpoints outside the user's control, no
+hardcoded tokens/secrets, no prompt-injection patterns, no credentials requested in
+plaintext, and cost-heavy Actor runs gated behind explicit user confirmation.
+CI also runs `scripts/lint_security.sh` (hardcoded-token scan) on every PR — you can run it locally with `bash scripts/lint_security.sh`.
+
 ## Quality (recommended, not required)
 
 The `skills/_template/` shows the recommended structure with three optional pieces:
