@@ -91,13 +91,14 @@ Collect all six answers before writing any files:
 1. **Task & trigger phrases.** What does the skill accomplish, and what exact phrases would a user say to invoke it? → frontmatter `description` (≤ 1024 chars, trigger phrases included).
 2. **Actors.** Which public Actors from the [Apify Store](https://apify.com/store) does it use? Verify each one exists with `apify actors info <actor-id>`; if an Actor is private or missing, stop and resolve it with the user.
 3. **Inputs & outputs.** What does a working input JSON look like for each Actor, and what schema do the dataset items come back in? → usage examples in SKILL.md.
+   Read the input schema from the Actor itself rather than guessing: `apify actors info <actor-id> --input --json`. To read the results of a run, take the dataset id from `.storage.defaultDatasetId` in the output of `apify actors call --json`, then `apify datasets get-items <dataset-id> --limit 5`.
 4. **Costs.** What costs money, and where are the cost traps (per-result pricing, memory limits, runaway pagination)? → cost guardrails in `references/gotchas.md`.
 5. **Failure modes.** What fails in practice (empty results, blocked pages, timeouts), and how should an agent recover? → error-recovery guidance.
 6. **Attribution.** Author name and URL for credit? → optional frontmatter `author` / `author_url`.
 
 ### Step 2 — Draft, validate, open the PR
 
-1. Fork the repo and work on a branch of the fork.
+1. Work on a branch. Fork the repo first unless the user already has push access to it.
 2. Copy `skills/_template/` to `skills/apify-<name>/`.
 3. Fill in `SKILL.md` (and optionally `references/`) from the interview answers, following the rules in [CONTRIBUTING.md](../CONTRIBUTING.md) and "Files to create" above.
 4. Add one entry for the skill to `.claude-plugin/marketplace.json`, modeled on the existing entries.
@@ -107,8 +108,14 @@ Collect all six answers before writing any files:
    bash scripts/lint_telemetry.sh && uv run scripts/generate_agents.py
    ```
 
-6. Do **not** commit the generated files (`agents/AGENTS.md`, README skills table) — CI regenerates them after merge.
-7. Open the PR with `gh pr create`, filling in the PR template. Check every checklist box only once it is actually true — CI fails the PR if the description is empty or any box is left unchecked.
+6. Do **not** commit the generated files (`agents/AGENTS.md`, README skills table) — CI regenerates them after merge. Note that a successful `generate_agents.py` run **rewrites both files in your working tree**, so `git add -A` would commit them. Discard them before staging:
+
+   ```bash
+   git checkout -- agents/AGENTS.md README.md
+   ```
+
+7. Open the PR with `gh pr create`, filling in the PR template. Check every checklist box only once it is actually true — CI fails the PR if the description is empty or any box is left unchecked. "Tested end-to-end" means the Actor calls in the skill were really run: that costs real money on the user's account (a single small query is typically a fraction of a cent, but a broad crawl is not), so agree the test scope with the user before running anything.
+8. Checks can take several minutes to appear on a new PR. "No checks reported" right after pushing is normal and does not mean CI is broken.
 
 ### Hard rules
 
@@ -116,3 +123,4 @@ Collect all six answers before writing any files:
 - **One skill per PR.**
 - Every `apify` CLI command in SKILL.md code blocks includes `--user-agent apify-awesome-skills/<skill-name>`, `--json`, and `2>/dev/null`.
 - Frontmatter `name` = folder name (`apify-<name>`).
+- The `description` in `.claude-plugin/marketplace.json` is a short one-line summary for catalog listings; the frontmatter `description` in `SKILL.md` is the trigger surface an agent matches against and carries the phrases a user would say. They serve different purposes and need not be identical.
