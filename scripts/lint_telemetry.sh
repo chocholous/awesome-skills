@@ -68,10 +68,12 @@ for file in "${SKILL_FILES[@]}"; do
       continue
     fi
 
-    # Check if this line contains any CLI trigger pattern
+    # Check if this line contains any CLI trigger pattern. The pattern must end
+    # at a word boundary, otherwise "apify run" also matches "apify runs ls" —
+    # a listing command that takes no --user-agent, reported as a violation.
     matched=0
     for pat in "${CLI_PATTERNS[@]}"; do
-      if [[ "$line" == *"$pat"* ]]; then
+      if [[ "$line" =~ (^|[[:space:]])"$pat"([[:space:]]|$) ]]; then
         matched=1
         break
       fi
