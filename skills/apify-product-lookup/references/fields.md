@@ -96,7 +96,7 @@ handle a retailer that says less.
 | Rating | `additionalProperties.stars` | **top-level `rating`**, and no `stars` key | not returned |
 | List price | `additionalProperties.listPrice.value` | not returned | not returned |
 | `additionalProperties` keys | 44 | 43 | 4 |
-| `brand` content | `{"slogan": "Sony"}` | `{"slogan": "Visit the Sony Store"}` | `{"slogan": null}` seen |
+| `brand` content | `{"slogan": "Visit the Sony Store"}` reported, not re-verified | `{"slogan": "Sony"}` on all 6 live rows | `{"slogan": null}` seen |
 | Images | string lists | `additionalProperties.allImages`, plain URL strings | string lists, some 1x1 placeholders |
 | Identifier | `asin` | `usItemId`, plus `gtin12` and `model` — no `sku` | neither, use the item id in the URL |
 | extras size | 44 keys, about 100 KB | 43 keys, about 4 to 12 KB | 4 keys |
