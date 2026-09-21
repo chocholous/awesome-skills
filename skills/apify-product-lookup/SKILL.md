@@ -50,18 +50,22 @@ users away from a tool that would have answered them.
 
 ## When a marketplace is not in the list
 
-Over MCP the `marketplaces` enum arrives **truncated**, because the server caps how much
-of a long enum it passes through. Some real, supported retailers are therefore missing
-from the list you can choose from, and passing one anyway returns a validation error
-before the run starts.
+Over MCP the `marketplaces` list does not reach you in full. Measured on the live tool
+definition: the Actor's own schema carries a **249-value enum of domains**
+(`www.amazon.com`, `allegro.pl`, `www.alza.cz`, …), but the tool exposed over MCP has
+**no `enum` at all** — it keeps `enumTitles` (249 *human labels*, "American Eagle",
+"Aldi (United Kingdom)") and a description saying the list "is too long to include",
+followed by ten example domains. So you see which retailers exist, but not the domain
+strings the field actually accepts, except for those ten.
 
-**That error does not mean the retailer is unsupported.** It means you cannot name it in
-a keyword search on this connection. Two ways through:
+**A retailer you cannot name is not an unsupported retailer.** Guessing the domain from a
+label burns a paid run on a validation error, and the label is often not the domain. Two
+ways through:
 
 1. **If you have the product URL, use `detailsUrls`.** It takes arbitrary URLs and is
    unaffected by the enum, so the retailer works normally.
-2. **If you only have a keyword**, run it on the marketplaces you can select and say
-   plainly which retailer you could not include. Do not report the retailer as
+2. **If you only have a keyword**, run it on the domains the description does list, and
+   say plainly which retailer you could not include and why. Do not report the retailer as
    unsupported.
 
 ## Pick the input before calling
@@ -72,7 +76,7 @@ The Actor takes different inputs for different questions. Choosing wrong wastes 
 |---|---|
 | About a specific page the user gave you | `detailsUrls: [{"url": "..."}]` |
 | "Find me a X under $Y" with no URL | `keyword` plus `marketplaces` |
-| "Compare X across stores" | `keyword` plus several `marketplaces` |
+| "Compare X across stores" | **one `detailsUrls` call carrying one URL per store** — not `keyword` with several `marketplaces` (see below) |
 | Food delivery catalogs | `keywordDelivery` plus `marketplacesDelivery` |
 
 Always send `additionalProperties: true`. Without it, stock, list price and the identifiers are missing entirely — and on the retailers that report the rating only there, the rating with them — because they are nested inside it.
@@ -86,6 +90,23 @@ no required fields and rejects nothing, so a cap key that does not belong to the
 are running is **accepted silently, does nothing, and the run scrapes unbounded**. Neither
 cap field has a schema default or a maximum, so there is nothing to fall back on. Set the
 run's `maxTotalChargeUsd` as the backstop — this Actor's minimum is $1.
+
+**`maxProductResults` is shared across the whole run, and one retailer takes all of it.**
+It is not a per-marketplace quota — the schema says "the total number of product results
+to collect during the entire run". On a keyword search naming two marketplaces, every run
+we have on record returned **100 % of its rows from a single retailer and zero from the
+other**, at caps of 1, 5 and 20 alike. Raising the cap does not help: at
+`maxProductResults: 20` the run returned twenty rows, all twenty from one store. Which
+store wins varies between otherwise identical runs and does not follow the order of the
+`marketplaces` array. The run still ends `SUCCEEDED` with an empty `errors` storage, so
+the missing retailer does not look like a failure.
+
+So for a cross-store comparison, do **not** send one keyword search with several
+marketplaces. Either resolve the product URL on each store first and send them together in
+a single `detailsUrls` call — that returns one row per URL and is the cheap, reliable path
+— or run one keyword search per marketplace. Whatever you do, check the spread of `url`
+domains in the dataset before you compare, not just the item count: a store with no rows
+means you did not get its data, never that the product is unavailable there.
 
 ## The call is two steps, sometimes three
 
@@ -168,10 +189,10 @@ The Actor bills per event, not per run, and more than two events are reachable o
 top tier — so confirm them live against the Actor's pricing before quoting a number to
 the user. In practice:
 
-- Cap with the cap field for your mode (see above). Five is plenty for a comparison; one for a single lookup.
+- Cap with the cap field for your mode (see above). One per URL for a `detailsUrls` call; a handful for a single-store keyword search. Raising the cap does not buy coverage of a second store.
 - A keyword comparison bills listing pages on top of the products, so it costs more than fetching the same products by URL.
 - The proxy and rendering surcharges are not optional and not visible in advance; budget above the per-product price, not at it.
-- Prefer one call with several URLs or marketplaces over several calls.
+- Prefer one call with several URLs over several calls. Several *marketplaces* in one keyword search is the exception — they compete for the same cap, so a comparison needs one call per store or a `detailsUrls` call naming both.
 - Do not re-run to "check" a result you already have.
 
 ## Gotchas
@@ -180,7 +201,7 @@ the user. In practice:
 - A `RUNNING` status is not an error and not a reason to retry the Actor. Poll `get-actor-run`; starting a second run doubles the cost and answers no faster.
 - Projecting with `fields` flattens the response into dotted keys. Reading the nested path then finds nothing, which is indistinguishable from the retailer not reporting the field.
 - Timing is not stable. The same Amazon URL returned in 10 seconds on one call and 40 on the next, and other retailers are slower still. Treat any single measurement as a sample, warn the user before a multi-retailer comparison, and never read slowness as failure.
-- A validation error naming `marketplaces` means the enum is truncated on this connection, not that the retailer is unsupported. Use `detailsUrls` with the product URL instead.
+- A validation error naming `marketplaces` means you guessed a domain the field does not accept — the MCP tool definition exposes the retailer labels but not their domain values. It does not mean the retailer is unsupported. Use `detailsUrls` with the product URL instead.
 - A retailer missing from `marketplaces` is not a reason to skip the call. Generic extraction is on by default, so unlisted shops frequently work. The listed ones have dedicated extractors and deeper field coverage.
 - Omitting `additionalProperties: true` silently drops stock, list price, the identifiers, and the rating on every retailer that nests it.
 - An absent rating comes back as `null` — that is what the Walmart rows returned, on the same products whose `rating` was `4.3` elsewhere. A `0` in `rating` or `stars` also means absent, not a zero-star product. Never render either as "0 stars".
