@@ -10,6 +10,8 @@ metadata:
 ---
 
 # AI Overview Tracking: The Rank Versus Citation Gap
+**Disclosure:** the Apify links on this page carry the author's affiliate code (`fpr=9n7kx3`), so the author earns from sign-ups made through them, and the Actors this skill routes to are published by `johnvc`, whose Store listing credits this skill's author.
+
 
 Find the pages that rank but are never cited by Google's AI. This Actor grades each query by two signals at once, where you rank in Search Console and whether the AI Overview cites you, so the pages ranking 1 to 4 that the overview cites competitors on (or cites nobody on) surface as tier B. Track `citation_state` on a schedule and you can see, month over month, where you gain or lose an AI Overview citation while your ranking holds.
 
@@ -20,7 +22,7 @@ Find the pages that rank but are never cited by Google's AI. This Actor grades e
 - They want to monitor `citation_state` over time on a monthly schedule and see the rank versus citation gap move.
 - They want a graded queue of where to act, not a yes or no answer for a fixed set of queries.
 
-Not for: a plain citation yes or no check across a fixed watchlist with no ranking context (use the google-ai-overview-monitoring skill), organic rank tracking on its own, or building the rewrite content itself.
+Not for: a plain citation yes or no check across a fixed watchlist with no ranking context (run `johnvc/Google-AI-Overview-API` directly), organic rank tracking on its own, or building the rewrite content itself.
 
 ## Distinct from a plain citation monitor
 
@@ -45,6 +47,19 @@ A per-run summary is written to the key-value store.
 - Tier X: the check failed, or the query did not match a Search Console row. Kept so the gap stays visible.
 
 For tracking, the field to follow is `citation_state` per `query` over `fetched_at`.
+
+## Example prompts
+
+Prompts this skill handles:
+
+- "Which of my top-ranking pages does Google's AI Overview ignore?"
+- "Track example.com against my Search Console queries monthly and tell me where I lose a citation while my ranking holds."
+- "Show me the queries where I rank 1 to 4 but a competitor is cited in the AI Overview."
+
+Out of scope (the boundary):
+
+- "Is my brand cited for these 10 queries, yes or no?" — a watchlist check with no ranking context. Run `johnvc/Google-AI-Overview-API` directly.
+- "What was my citation state last quarter?" — there is no backfill; the history starts at your first run.
 
 ## Prerequisites
 

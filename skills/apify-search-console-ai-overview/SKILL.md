@@ -10,6 +10,8 @@ metadata:
 ---
 
 # Search Console AI Overview: A Prioritized Rewrite Queue
+**Disclosure:** the Apify links on this page carry the author's affiliate code (`fpr=9n7kx3`), so the author earns from sign-ups made through them, and the Actors this skill routes to are published by `johnvc`, whose Store listing credits this skill's author.
+
 
 Build a prioritized rewrite queue from your Google Search Console data. This Actor joins each query's Search Console position and CTR against the live AI Overview citation state, then returns a tiered queue so you rewrite the highest-leverage pages first: the ones where a competitor is cited in the AI Overview while you still rank 5 to 20.
 
@@ -20,7 +22,7 @@ Build a prioritized rewrite queue from your Google Search Console data. This Act
 - They have a Search Console Queries export (CSV) and a domain, and want it turned into a ranked to-do queue.
 - They want the join that nothing else does: Search Console rank and CTR on one side, live AI Overview citation state on the other.
 
-Not for: a plain yes or no citation check across a fixed watchlist (use the google-ai-overview-monitoring skill), organic rank tracking on its own, or content rewriting itself (this tells you which pages to rewrite, not what to write).
+Not for: a plain yes or no citation check across a fixed watchlist (run `johnvc/Google-AI-Overview-API` directly), organic rank tracking on its own, or content rewriting itself (this tells you which pages to rewrite, not what to write).
 
 ## What you get (one row per query)
 
@@ -39,6 +41,19 @@ A run summary is written to the key-value store.
 - Tier C: you are already cited but your CTR is below your own baseline — the baseline being your CTR on queries in *this same export* that have no AI Overview at a comparable position, not that query's own history. A small export often has too few of those for the baseline to exist, and then tier C cannot fire at all.
 - Tier D: no AI Overview for the query.
 - Tier X: the citation check failed, or the query did not match a Search Console row. Kept, never dropped, so you can see the gap.
+
+## Example prompts
+
+Prompts this skill handles:
+
+- "Here is my Search Console Queries export for example.com — which pages should I rewrite first because of AI Overviews?"
+- "Turn this Search Console CSV into a ranked rewrite queue and show me the tier A rows."
+- "For these 20 queries, where does the AI Overview cite a competitor while I rank on page one or two?"
+
+Out of scope (the boundary):
+
+- "Is my brand cited in the AI Overview for these 10 queries?" — a plain citation check with no Search Console data behind it. Run `johnvc/Google-AI-Overview-API` directly; this skill needs rank and CTR to tier anything.
+- "Rewrite the page for me." — this skill tells you which pages to rewrite, not what to write.
 
 ## Prerequisites
 
